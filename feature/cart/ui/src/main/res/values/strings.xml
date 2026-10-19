@@ -1,0 +1,12 @@
+<resources>
+    <string name="cart_title">Cart</string>
+    <string name="cart_empty_title">Your cart is empty</string>
+    <string name="cart_empty_description">Add something from the store to get started.</string>
+    <string name="cart_browse">Browse products</string>
+    <string name="cart_total">Total</string>
+    <string name="cart_checkout">Place order</string>
+    <string name="cart_increase">Add one</string>
+    <string name="cart_decrease">Remove one</string>
+    <string name="cart_quantity">× %1$d</string>
+    <string name="cart_error_empty">Your cart is empty.</string>
+</resources>

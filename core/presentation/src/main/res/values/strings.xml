@@ -1,0 +1,12 @@
+<resources>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network_no_connection">No internet connection.</string>
+    <string name="error_network_timeout">The server took too long to answer.</string>
+    <string name="error_session_expired">Your session expired. Please sign in again.</string>
+    <string name="error_forbidden">You don\'t have access to this.</string>
+    <string name="error_not_found">We couldn\'t find it.</string>
+    <string name="error_server">Server error. Please try again later.</string>
+    <string name="error_invalid_credentials">Wrong email or password.</string>
+    <string name="error_validation">Please check the highlighted fields.</string>
+    <string name="error_conflict">Someone changed this in the meantime. Refresh and try again.</string>
+</resources>

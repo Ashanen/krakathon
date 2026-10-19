@@ -1,0 +1,16 @@
+<resources>
+    <string name="ds_back">Back</string>
+    <string name="ds_cancel">Cancel</string>
+    <string name="ds_close">Close</string>
+    <string name="ds_ok">OK</string>
+    <string name="ds_retry">Try again</string>
+    <string name="ds_clear">Clear</string>
+    <string name="ds_search">Search</string>
+    <string name="ds_show_password">Show password</string>
+    <string name="ds_hide_password">Hide password</string>
+    <string name="ds_dismiss">Dismiss</string>
+    <string name="ds_loading">Loading</string>
+    <string name="ds_error_title">Something went wrong</string>
+    <string name="ds_error_generic">Something went wrong. Please try again.</string>
+    <string name="ds_character_counter">%1$d / %2$d</string>
+</resources>

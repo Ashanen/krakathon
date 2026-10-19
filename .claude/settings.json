@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -qE '\"command\" *: *\"git commit' || exit 0; ./gradlew -q checkModules testDebugUnitTest :konsist:test >&2 || { echo 'Blocked: rules or tests failing. Fix, then commit.' >&2; exit 2; }"
+          }
+        ]
+      }
+    ]
+  }
+}

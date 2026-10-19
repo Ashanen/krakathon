@@ -1,0 +1,7 @@
+plugins {
+    id("krakathon.feature.ui")
+}
+
+dependencies {
+    implementation(projects.feature.cart.api)
+}

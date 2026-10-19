@@ -12,4 +12,8 @@ class RemoteProductDataSource(
     override suspend fun getProducts(): List<ProductDto> = safeApiCall {
         client.get("products").body()
     }
+
+    override suspend fun getProduct(id: String): ProductDto = safeApiCall {
+        client.get("products/$id").body()
+    }
 }

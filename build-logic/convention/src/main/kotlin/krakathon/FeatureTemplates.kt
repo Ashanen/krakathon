@@ -102,18 +102,15 @@ internal class FeatureTemplates(private val name: String) {
     private fun viewModel() = """
         |package $pkg.ui
         |
-        |import androidx.lifecycle.viewModelScope
-        |import com.castorama.krakathon.core.presentation.flow.launchWith
         |import com.castorama.krakathon.core.presentation.mvi.BaseUiState
+        |import com.castorama.krakathon.core.presentation.mvi.Loadable
         |import com.castorama.krakathon.core.presentation.mvi.ScreenState
         |import com.castorama.krakathon.core.presentation.viewmodel.BaseViewModel
         |import com.castorama.krakathon.core.usecase.invoke
         |import $pkg.domain.Get${type}MessageUseCase
-        |import kotlinx.coroutines.flow.onEach
-        |import kotlinx.coroutines.flow.onStart
         |
         |data class ${type}State(
-        |    val message: String = "",
+        |    val message: Loadable<String> = Loadable.Loading,
         |    override val baseUiState: BaseUiState = BaseUiState(),
         |) : ScreenState<${type}State> {
         |    override fun withBaseUiState(baseUiState: BaseUiState) = copy(baseUiState = baseUiState)
@@ -138,13 +135,7 @@ internal class FeatureTemplates(private val name: String) {
         |    }
         |
         |    private fun load() {
-        |        get${type}MessageUseCase()
-        |            .onStart { setLoading(true) }
-        |            .onEach { message ->
-        |                setLoading(false)
-        |                updateState { copy(message = message) }
-        |            }
-        |            .launchWith(viewModelScope, onError = { showError(it, retry = ::load) })
+        |        get${type}MessageUseCase().launchLoadable { copy(message = it) }
         |    }
         |}
         |""".trimMargin()
@@ -163,17 +154,24 @@ internal class FeatureTemplates(private val name: String) {
         |import androidx.compose.ui.res.stringResource
         |import androidx.lifecycle.compose.collectAsStateWithLifecycle
         |import com.castorama.krakathon.core.designsystem.components.KrakScreen
+        |import com.castorama.krakathon.core.designsystem.components.LoadableContent
+        |import com.castorama.krakathon.core.designsystem.components.LoadingIndicator
         |import com.castorama.krakathon.core.presentation.mvi.BaseAction
         |import org.koin.compose.viewmodel.koinViewModel
         |
         |@Composable
         |fun ${type}Entry(onBack: () -> Unit, viewModel: ${type}ViewModel = koinViewModel()) {
         |    val state by viewModel.uiState.collectAsStateWithLifecycle()
-        |    ${type}Screen(state = state, onBaseAction = viewModel::onBaseAction, onBack = onBack)
+        |    ${type}Screen(state, viewModel::onAction, viewModel::onBaseAction, onBack)
         |}
         |
         |@Composable
-        |fun ${type}Screen(state: ${type}State, onBaseAction: (BaseAction) -> Unit, onBack: () -> Unit) {
+        |fun ${type}Screen(
+        |    state: ${type}State,
+        |    onAction: (${type}Action) -> Unit,
+        |    onBaseAction: (BaseAction) -> Unit,
+        |    onBack: () -> Unit,
+        |) {
         |    KrakScreen(
         |        title = stringResource(R.string.${name}_title),
         |        baseUiState = state.baseUiState,
@@ -181,7 +179,11 @@ internal class FeatureTemplates(private val name: String) {
         |        onBack = onBack,
         |    ) { padding ->
         |        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-        |            Text(state.message)
+        |            LoadableContent(
+        |                loadable = state.message,
+        |                onRetry = { onAction(${type}Action.Refresh) },
+        |                loading = { LoadingIndicator() },
+        |            ) { message -> Text(message) }
         |        }
         |    }
         |}

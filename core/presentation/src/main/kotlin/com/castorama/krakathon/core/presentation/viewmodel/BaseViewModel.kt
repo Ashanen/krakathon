@@ -2,18 +2,25 @@ package com.castorama.krakathon.core.presentation.viewmodel
 
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
-import com.castorama.krakathon.core.presentation.error.toErrorMessage
+import androidx.lifecycle.viewModelScope
 import com.castorama.krakathon.core.exception.toErrorType
+import com.castorama.krakathon.core.presentation.error.toErrorMessage
+import com.castorama.krakathon.core.presentation.flow.launchWith
 import com.castorama.krakathon.core.presentation.mvi.BaseAction
 import com.castorama.krakathon.core.presentation.mvi.BaseUiState
 import com.castorama.krakathon.core.presentation.mvi.ErrorDialogState
 import com.castorama.krakathon.core.presentation.mvi.InfoDialogState
+import com.castorama.krakathon.core.presentation.mvi.Loadable
 import com.castorama.krakathon.core.presentation.mvi.ScreenState
 import com.castorama.krakathon.core.presentation.mvi.SnackbarState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 
 /**
  * MVI base: one [uiState], one [onAction] entry point, shared dialogs/snackbar via [onBaseAction].
@@ -59,6 +66,19 @@ abstract class BaseViewModel<S : ScreenState<S>, A>(initialState: S) : ViewModel
             )
         }
     }
+
+    /**
+     * Collects screen data into a [Loadable] slot of the state: Loading -> Ready, or Failed on error.
+     * Retry = call the same load function again; it re-subscribes from scratch.
+     *
+     * ```kotlin
+     * getProductsUseCase().launchLoadable { copy(products = it) }
+     * ```
+     */
+    protected fun <T> Flow<T>.launchLoadable(into: S.(Loadable<T>) -> S): Job =
+        onStart { updateState { into(Loadable.Loading) } }
+            .onEach { value -> updateState { into(Loadable.Ready(value)) } }
+            .launchWith(viewModelScope) { error -> updateState { into(Loadable.Failed(errorMessage(error))) } }
 
     protected fun showInfo(infoDialogState: InfoDialogState) = updateBase { copy(infoDialogState = infoDialogState) }
 

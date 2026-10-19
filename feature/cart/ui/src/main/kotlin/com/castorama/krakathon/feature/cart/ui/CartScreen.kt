@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -28,10 +29,13 @@ import com.castorama.krakathon.core.designsystem.components.KrakButton
 import com.castorama.krakathon.core.designsystem.components.KrakCard
 import com.castorama.krakathon.core.designsystem.components.KrakEmptyState
 import com.castorama.krakathon.core.designsystem.components.KrakIconButton
+import com.castorama.krakathon.core.designsystem.components.KrakInfoBox
 import com.castorama.krakathon.core.designsystem.components.KrakKeyValueRow
+import com.castorama.krakathon.core.designsystem.components.LoadableContent
 import com.castorama.krakathon.core.designsystem.components.KrakScreen
 import com.castorama.krakathon.core.designsystem.components.SkeletonBlock
 import com.castorama.krakathon.core.designsystem.theme.KrakTheme
+import com.castorama.krakathon.core.designsystem.theme.colors.StatusTone
 import com.castorama.krakathon.core.presentation.format.formatPrice
 import com.castorama.krakathon.core.presentation.mvi.BaseAction
 import com.castorama.krakathon.feature.cart.domain.model.Cart
@@ -62,23 +66,35 @@ fun CartScreen(
         onBaseAction = onBaseAction,
         onBack = onBack,
     ) { padding ->
-        val cart = state.cart
-        when {
-            cart == null -> SkeletonBlock(
-                Modifier.padding(padding).padding(KrakTheme.spacing.screenPadding).fillMaxWidth().height(96.dp),
-                shape = KrakTheme.shapes.card,
-            )
-            cart.items.isEmpty() -> KrakEmptyState(
-                title = stringResource(R.string.cart_empty_title),
-                description = stringResource(R.string.cart_empty_description),
-                icon = Icons.Outlined.ShoppingCart,
-                actionText = stringResource(R.string.cart_browse),
-                onAction = onBack,
-                modifier = Modifier.padding(padding),
-            )
-            else -> CartContent(cart, state.isCheckingOut, onAction, padding)
+        LoadableContent(
+            loadable = state.cart,
+            onRetry = { onAction(CartAction.Retry) },
+            loading = { CartSkeleton(padding) },
+            modifier = Modifier.padding(padding),
+        ) { cart ->
+            if (cart.isEmpty) {
+                KrakEmptyState(
+                    title = stringResource(R.string.cart_empty_title),
+                    description = stringResource(R.string.cart_empty_description),
+                    icon = Icons.Outlined.ShoppingCart,
+                    actionText = stringResource(R.string.cart_browse),
+                    onAction = onBack,
+                    modifier = Modifier.padding(padding),
+                )
+            } else {
+                CartContent(cart, state.isCheckingOut, onAction, padding)
+            }
         }
     }
+}
+
+/** 1:1 ghost of one [CartItemCard] row. */
+@Composable
+private fun CartSkeleton(padding: PaddingValues) {
+    SkeletonBlock(
+        Modifier.padding(padding).padding(KrakTheme.spacing.screenPadding).fillMaxWidth().height(88.dp),
+        shape = KrakTheme.shapes.card,
+    )
 }
 
 @Composable
@@ -89,7 +105,17 @@ private fun CartContent(cart: Cart, isCheckingOut: Boolean, onAction: (CartActio
             contentPadding = PaddingValues(KrakTheme.spacing.screenPadding),
             verticalArrangement = Arrangement.spacedBy(KrakTheme.spacing.semiMedium),
         ) {
-            items(cart.items, key = { it.product.id }) { item -> CartItemCard(item, onAction) }
+            if (cart.unavailableIds.isNotEmpty()) {
+                item(key = "unavailable") {
+                    KrakInfoBox(
+                        text = pluralStringResource(R.plurals.cart_unavailable, cart.unavailableIds.size, cart.unavailableIds.size),
+                        tone = StatusTone.Warning,
+                        actionText = stringResource(R.string.cart_remove_unavailable),
+                        onAction = { onAction(CartAction.RemoveUnavailable) },
+                    )
+                }
+            }
+            items(cart.items, key = { it.product.id }) { item -> CartItemCard(item, enabled = !isCheckingOut, onAction) }
         }
         Column(
             modifier = Modifier.navigationBarsPadding().padding(KrakTheme.spacing.screenPadding),
@@ -99,6 +125,7 @@ private fun CartContent(cart: Cart, isCheckingOut: Boolean, onAction: (CartActio
             KrakButton(
                 text = stringResource(R.string.cart_checkout),
                 onClick = { onAction(CartAction.Checkout) },
+                enabled = cart.unavailableIds.isEmpty(),
                 loading = isCheckingOut,
             )
         }
@@ -106,7 +133,7 @@ private fun CartContent(cart: Cart, isCheckingOut: Boolean, onAction: (CartActio
 }
 
 @Composable
-private fun CartItemCard(item: CartItem, onAction: (CartAction) -> Unit) {
+private fun CartItemCard(item: CartItem, enabled: Boolean, onAction: (CartAction) -> Unit) {
     KrakCard(Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(KrakTheme.spacing.medium),
@@ -121,12 +148,14 @@ private fun CartItemCard(item: CartItem, onAction: (CartAction) -> Unit) {
                 icon = Icons.Outlined.Remove,
                 contentDescription = stringResource(R.string.cart_decrease),
                 onClick = { onAction(CartAction.Decrease(item.product.id)) },
+                enabled = enabled,
             )
             Text(stringResource(R.string.cart_quantity, item.quantity), style = KrakTheme.typography.titleSmall)
             KrakIconButton(
                 icon = Icons.Outlined.Add,
                 contentDescription = stringResource(R.string.cart_increase),
                 onClick = { onAction(CartAction.Increase(item.product.id)) },
+                enabled = enabled,
             )
         }
     }

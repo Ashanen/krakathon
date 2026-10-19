@@ -44,6 +44,8 @@ Generic ones in `core/exception` (`NetworkException`, `ValidationException`, ...
 - Other screens must SEE it (cart count, favorites)? `StateFlow<Map<Id, Value>>` on singleton repo.
 - One-off FACT (order placed)? `data class OrderPlaced(...) : AppEvent` in `api`, `eventBus.emit()` in a use case, `eventBus.observe<OrderPlaced>()` in another use case.
 - Never `SharedFlow<Unit>` "refresh" events. Never callbacks between screens.
+- Read-modify-write on repo state = one atomic repo method (`MutableStateFlow.getAndUpdate`). Never `value` then `clear()`.
+- Stream joins another feature? Catch the EXPECTED miss (`ProductNotFound`) per item and model it (`unavailableIds`); let real errors reach the VM for retry.
 
 ## Koin
 `factoryOf(::X)` for use cases. Module name `<feature>DomainModule`.

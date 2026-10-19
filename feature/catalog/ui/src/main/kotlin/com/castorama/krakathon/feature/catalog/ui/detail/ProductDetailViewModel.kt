@@ -3,6 +3,7 @@ package com.castorama.krakathon.feature.catalog.ui.detail
 import androidx.lifecycle.viewModelScope
 import com.castorama.krakathon.core.presentation.flow.launchWith
 import com.castorama.krakathon.core.presentation.mvi.BaseUiState
+import com.castorama.krakathon.core.presentation.mvi.Loadable
 import com.castorama.krakathon.core.presentation.mvi.ScreenState
 import com.castorama.krakathon.core.presentation.mvi.SnackbarState
 import com.castorama.krakathon.core.presentation.viewmodel.BaseViewModel
@@ -16,7 +17,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 
 data class ProductDetailState(
-    val product: Product? = null,
+    val product: Loadable<Product> = Loadable.Loading,
     val isAdding: Boolean = false,
     override val baseUiState: BaseUiState = BaseUiState(),
 ) : ScreenState<ProductDetailState> {
@@ -25,6 +26,7 @@ data class ProductDetailState(
 
 sealed interface ProductDetailAction {
     data object AddToCart : ProductDetailAction
+    data object Retry : ProductDetailAction
 }
 
 class ProductDetailViewModel(
@@ -40,6 +42,7 @@ class ProductDetailViewModel(
     override fun onAction(action: ProductDetailAction) {
         when (action) {
             ProductDetailAction.AddToCart -> addToCart()
+            ProductDetailAction.Retry -> loadProduct()
         }
     }
 
@@ -49,9 +52,7 @@ class ProductDetailViewModel(
     }
 
     private fun loadProduct() {
-        getProductUseCase(productId)
-            .onEach { product -> updateState { copy(product = product) } }
-            .launchWith(viewModelScope, onError = { showError(it, retry = ::loadProduct) })
+        getProductUseCase(productId).launchLoadable { copy(product = it) }
     }
 
     private fun addToCart() {

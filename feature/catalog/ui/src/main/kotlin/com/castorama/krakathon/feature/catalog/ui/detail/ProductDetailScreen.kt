@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.castorama.krakathon.core.designsystem.components.KrakButton
 import com.castorama.krakathon.core.designsystem.components.KrakScreen
+import com.castorama.krakathon.core.designsystem.components.LoadableContent
 import com.castorama.krakathon.core.designsystem.components.SkeletonBlock
 import com.castorama.krakathon.core.designsystem.components.SkeletonLine
 import com.castorama.krakathon.core.designsystem.theme.KrakTheme
@@ -58,14 +59,21 @@ fun ProductDetailScreen(
                 .padding(KrakTheme.spacing.screenPadding),
             verticalArrangement = Arrangement.spacedBy(KrakTheme.spacing.medium),
         ) {
-            val product = state.product
-            if (product == null) DetailSkeleton() else ProductDetails(product)
-            KrakButton(
-                text = stringResource(R.string.catalog_add_to_cart),
-                onClick = { onAction(ProductDetailAction.AddToCart) },
-                enabled = product != null,
-                loading = state.isAdding,
-            )
+            LoadableContent(
+                loadable = state.product,
+                onRetry = { onAction(ProductDetailAction.Retry) },
+                loading = {
+                    DetailSkeleton()
+                    SkeletonBlock(Modifier.fillMaxWidth().height(KrakTheme.dimensions.buttonHeight), shape = KrakTheme.shapes.large)
+                },
+            ) { product ->
+                ProductDetails(product)
+                KrakButton(
+                    text = stringResource(R.string.catalog_add_to_cart),
+                    onClick = { onAction(ProductDetailAction.AddToCart) },
+                    loading = state.isAdding,
+                )
+            }
         }
     }
 }

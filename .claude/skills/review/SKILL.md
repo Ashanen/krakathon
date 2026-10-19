@@ -19,7 +19,9 @@ Domain / data
 UI
 - [ ] VM: use cases only, `launchWith` only, errors via `showError`.
 - [ ] Entry/Screen split. Screen stateless.
-- [ ] Skeleton while loading, empty state with CTA, no dead end.
+- [ ] Main data is `Loadable`: skeleton, inline error + retry, empty state with CTA. No dead end.
+- [ ] Streams survive errors: retry re-subscribes; expected misses are modeled, not thrown.
+- [ ] Shared-state read+write is one atomic repo call. Controls locked during submit.
 - [ ] `Krak*` components + theme tokens. Strings in res. Lazy items keyed.
 
 Tests

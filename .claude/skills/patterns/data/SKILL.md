@@ -32,6 +32,8 @@ class RemoteProductDataSource(private val client: HttpClient) : ProductDataSourc
 - Maps DTO -> domain. Throws domain exceptions (e.g. `ProductNotFound`).
 - Shared state: hold `MutableStateFlow`, expose `StateFlow`. Bind `singleOf(...)`.
 - Inject DataSource, never `HttpClient` directly.
+- Lookup by id = own endpoint (`GET products/{id}`) + cache in the singleton repo. Never fetch the whole list to find one.
+- Map transport errors to domain ones at the repo edge (`NetworkException.NotFound` -> `ProductNotFound`).
 
 ## Koin
 ```kotlin

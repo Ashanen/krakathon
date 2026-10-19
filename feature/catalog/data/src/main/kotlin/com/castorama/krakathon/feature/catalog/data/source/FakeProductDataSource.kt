@@ -1,5 +1,6 @@
 package com.castorama.krakathon.feature.catalog.data.source
 
+import com.castorama.krakathon.core.exception.NetworkException
 import kotlinx.coroutines.delay
 
 /** In-memory data so the app runs with no backend. */
@@ -7,6 +8,11 @@ class FakeProductDataSource : ProductDataSource {
     override suspend fun getProducts(): List<ProductDto> {
         delay(FAKE_LATENCY_MS)
         return products
+    }
+
+    override suspend fun getProduct(id: String): ProductDto {
+        delay(FAKE_LATENCY_MS)
+        return products.firstOrNull { it.id == id } ?: throw NetworkException.NotFound
     }
 
     private companion object {

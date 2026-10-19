@@ -8,14 +8,24 @@ description: UI layer patterns — MVI ViewModel, launchWith, Entry/Screen split
 ## State + Action
 ```kotlin
 data class CartState(
-    val cart: Cart? = null,
+    val cart: Loadable<Cart> = Loadable.Loading,
     override val baseUiState: BaseUiState = BaseUiState(),
 ) : ScreenState<CartState> {
     override fun withBaseUiState(baseUiState: BaseUiState) = copy(baseUiState = baseUiState)
 }
 sealed interface CartAction { data object Checkout : CartAction }
 ```
-`BaseUiState` = loading, error dialog, info dialog, snackbar. `KrakScreen` renders all of it.
+`BaseUiState` = loading overlay, error dialog, info dialog, snackbar. `KrakScreen` renders all of it.
+
+## Loading screen data
+```kotlin
+// VM: Loading -> Ready, or Failed(message) on error. Retry = call it again (re-subscribes).
+private fun observeCart() { observeCartUseCase().launchLoadable { copy(cart = it) } }
+// Screen
+LoadableContent(state.cart, onRetry = { onAction(CartAction.Retry) }, loading = { CartSkeleton() }) { cart -> ... }
+```
+- Main data ALWAYS `Loadable`. Never `T? = null` + skeleton: a failed load would show skeleton forever.
+- Error dialog (`showError`) is for ACTIONS (add, checkout). Load failures render inline.
 
 ## ViewModel
 ```kotlin
@@ -45,7 +55,8 @@ class CartViewModel(private val checkoutUseCase: CheckoutUseCase) : BaseViewMode
 }
 ```
 - `XEntry` = stateful (VM). `XScreen` = stateless, previewable.
-- Not loaded yet -> skeleton (`SkeletonBlock`), never the empty state.
+- Loading -> skeleton (`SkeletonBlock`, same shape as content), never the empty state.
+- Lock controls while a submit runs (`enabled = !isCheckingOut`).
 - Empty -> `KrakEmptyState` with a CTA. No dead ends.
 - Lists: `LazyColumn` + `items(list, key = { it.id })`.
 - Only `Krak*` components, `KrakTheme.colors/spacing/typography/shapes`.

@@ -37,7 +37,9 @@ Core = infrastructure only. No business. No "common" module, ever — name by co
 5. Errors = typed exceptions (`AppException`). Throw, no `Result`.
 6. DataSource wraps calls in `safeApiCall { }`. No try/catch.
 7. State other screens see = `StateFlow` on singleton repo. One-off fact = `AppEvent` on `AppEventBus`.
+   Read-then-write on shared state = ONE atomic repo call (`takeAll()`), never read + clear.
 8. Composables dumb. Stateful `XEntry` + stateless `XScreen(state, onAction)`.
+   Screen data = `Loadable<T>` (Loading / Ready / Failed). VM: `useCase().launchLoadable { copy(x = it) }`. Screen: `LoadableContent(...)`. Failed load = inline error + retry, never endless skeleton.
 9. UI only `Krak*` components + `KrakTheme` tokens. No raw colors/dp guesses.
 10. Strings in `res/values/strings.xml`. No `Text("...")`.
 11. `LazyColumn items(...)` always has `key =`.
@@ -47,7 +49,7 @@ Core = infrastructure only. No business. No "common" module, ever — name by co
 ```
 ./gradlew assembleDebug                  build app
 ./gradlew testDebugUnitTest :konsist:test unit + architecture tests
-./gradlew checkModules                   module rules
+./gradlew checkModules                   module rules + generator tests
 ./gradlew newFeature --name=wishlist     new feature, 4 modules, wired
 ```
 Done = `assembleDebug` + tests green. Fix code, never the rule.

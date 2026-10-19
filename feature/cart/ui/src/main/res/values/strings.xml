@@ -9,4 +9,9 @@
     <string name="cart_decrease">Remove one</string>
     <string name="cart_quantity">× %1$d</string>
     <string name="cart_error_empty">Your cart is empty.</string>
+    <plurals name="cart_unavailable">
+        <item quantity="one">%1$d product in your cart is no longer sold. Remove it to place the order.</item>
+        <item quantity="other">%1$d products in your cart are no longer sold. Remove them to place the order.</item>
+    </plurals>
+    <string name="cart_remove_unavailable">Remove</string>
 </resources>

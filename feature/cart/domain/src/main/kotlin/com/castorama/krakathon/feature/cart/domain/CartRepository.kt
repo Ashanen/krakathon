@@ -8,5 +8,8 @@ interface CartRepository {
     val quantities: StateFlow<Map<String, Int>>
     fun add(productId: String)
     fun remove(productId: String)
-    fun clear()
+    fun removeAll(productIds: Set<String>)
+
+    /** Atomically empties the cart and returns what was in it. Nothing added in between is lost. */
+    fun takeAll(): Map<String, Int>
 }

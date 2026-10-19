@@ -22,6 +22,16 @@ dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.compose.compilerGradlePlugin)
     compileOnly(libs.serialization.gradlePlugin)
+    testImplementation(libs.kotest.runner)
+    testImplementation(libs.kotest.assertions)
+}
+
+tasks.test {
+    useJUnitPlatform()
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
 
 gradlePlugin {

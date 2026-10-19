@@ -4,6 +4,7 @@ import com.castorama.krakathon.feature.cart.domain.CartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 
 internal class InMemoryCartRepository : CartRepository {
@@ -17,5 +18,7 @@ internal class InMemoryCartRepository : CartRepository {
         if (left > 0) it + (productId to left) else it - productId
     }
 
-    override fun clear() = _quantities.update { emptyMap() }
+    override fun removeAll(productIds: Set<String>) = _quantities.update { it - productIds }
+
+    override fun takeAll(): Map<String, Int> = _quantities.getAndUpdate { emptyMap() }
 }

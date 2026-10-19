@@ -3,6 +3,7 @@ package com.castorama.krakathon.feature.catalog.ui.list
 import androidx.lifecycle.viewModelScope
 import com.castorama.krakathon.core.presentation.flow.launchWith
 import com.castorama.krakathon.core.presentation.mvi.BaseUiState
+import com.castorama.krakathon.core.presentation.mvi.Loadable
 import com.castorama.krakathon.core.presentation.mvi.ScreenState
 import com.castorama.krakathon.core.presentation.mvi.SnackbarState
 import com.castorama.krakathon.core.presentation.viewmodel.BaseViewModel
@@ -13,12 +14,10 @@ import com.castorama.krakathon.feature.catalog.domain.GetProductsUseCase
 import com.castorama.krakathon.feature.catalog.domain.ObserveOrderPlacedUseCase
 import com.castorama.krakathon.feature.catalog.ui.R
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 
 data class CatalogState(
-    val products: List<Product> = emptyList(),
+    val products: Loadable<List<Product>> = Loadable.Loading,
     val cartCount: Int = 0,
-    val hasLoaded: Boolean = false,
     override val baseUiState: BaseUiState = BaseUiState(),
 ) : ScreenState<CatalogState> {
     override fun withBaseUiState(baseUiState: BaseUiState) = copy(baseUiState = baseUiState)
@@ -47,13 +46,7 @@ class CatalogViewModel(
     }
 
     private fun loadProducts() {
-        getProductsUseCase()
-            .onStart { setLoading(true) }
-            .onEach { products ->
-                setLoading(false)
-                updateState { copy(products = products, hasLoaded = true) }
-            }
-            .launchWith(viewModelScope, onError = { showError(it, retry = ::loadProducts) })
+        getProductsUseCase().launchLoadable { copy(products = it) }
     }
 
     private fun observeCartCount() {

@@ -25,6 +25,7 @@ import com.castorama.krakathon.core.designsystem.components.KrakCard
 import com.castorama.krakathon.core.designsystem.components.KrakEmptyState
 import com.castorama.krakathon.core.designsystem.components.KrakIconButton
 import com.castorama.krakathon.core.designsystem.components.KrakScreen
+import com.castorama.krakathon.core.designsystem.components.LoadableContent
 import com.castorama.krakathon.core.designsystem.components.SkeletonBlock
 import com.castorama.krakathon.core.designsystem.theme.KrakTheme
 import com.castorama.krakathon.core.designsystem.theme.colors.StatusTone
@@ -60,25 +61,32 @@ fun CatalogScreen(
 ) {
     KrakScreen(
         title = stringResource(R.string.catalog_title),
-        baseUiState = state.baseUiState.copy(isLoading = false),
+        baseUiState = state.baseUiState,
         onBaseAction = onBaseAction,
         actions = { CartAction(state.cartCount, onCartClick) },
     ) { padding ->
-        when {
-            !state.hasLoaded -> CatalogSkeleton(padding)
-            state.products.isEmpty() -> KrakEmptyState(
-                title = stringResource(R.string.catalog_empty_title),
-                description = stringResource(R.string.catalog_empty_description),
-                actionText = stringResource(R.string.catalog_reload),
-                onAction = { onAction(CatalogAction.Reload) },
-                modifier = Modifier.padding(padding),
-            )
-            else -> LazyColumn(
-                contentPadding = listPadding(padding),
-                verticalArrangement = Arrangement.spacedBy(KrakTheme.spacing.semiMedium),
-            ) {
-                items(state.products, key = { it.id }) { product ->
-                    ProductCard(product, onClick = { onProductClick(product.id) })
+        LoadableContent(
+            loadable = state.products,
+            onRetry = { onAction(CatalogAction.Reload) },
+            loading = { CatalogSkeleton(padding) },
+            modifier = Modifier.padding(padding),
+        ) { products ->
+            if (products.isEmpty()) {
+                KrakEmptyState(
+                    title = stringResource(R.string.catalog_empty_title),
+                    description = stringResource(R.string.catalog_empty_description),
+                    actionText = stringResource(R.string.catalog_reload),
+                    onAction = { onAction(CatalogAction.Reload) },
+                    modifier = Modifier.padding(padding),
+                )
+            } else {
+                LazyColumn(
+                    contentPadding = listPadding(padding),
+                    verticalArrangement = Arrangement.spacedBy(KrakTheme.spacing.semiMedium),
+                ) {
+                    items(products, key = { it.id }) { product ->
+                        ProductCard(product, onClick = { onProductClick(product.id) })
+                    }
                 }
             }
         }

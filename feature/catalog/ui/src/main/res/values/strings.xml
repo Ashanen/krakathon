@@ -4,7 +4,7 @@
     <string name="catalog_empty_title">No products yet</string>
     <string name="catalog_empty_description">Pull the latest catalog and try again.</string>
     <string name="catalog_reload">Reload</string>
-    <string name="catalog_order_placed">Order placed: %1$d items. Thank you!</string>
+    <string name="catalog_order_placed">Order placed. Items: %1$d. Thank you!</string>
     <string name="catalog_detail_title">Product</string>
     <string name="catalog_add_to_cart">Add to cart</string>
     <string name="catalog_added_to_cart">Added to cart</string>

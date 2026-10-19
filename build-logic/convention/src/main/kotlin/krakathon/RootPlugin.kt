@@ -8,7 +8,7 @@ import org.gradle.api.artifacts.ProjectDependency
 /**
  * Root plugin:
  * - checks [ModuleRules] for every module while Gradle configures (any build fails on a bad edge),
- * - `./gradlew checkModules` runs just that check,
+ * - `./gradlew checkModules` runs just that check plus the build-logic tests,
  * - `./gradlew newFeature --name=wishlist` scaffolds a 4-module feature.
  */
 class RootPlugin : Plugin<Project> {
@@ -18,7 +18,8 @@ class RootPlugin : Plugin<Project> {
         }
         tasks.register("checkModules") {
             group = "verification"
-            description = "Fails when a module breaks the dependency rules (checked during configuration)."
+            description = "Module dependency rules (checked during configuration) + build-logic tests (generator)."
+            dependsOn(gradle.includedBuild("build-logic").task(":convention:test"))
             doLast { logger.lifecycle("Module rules OK.") }
         }
         tasks.register("newFeature", NewFeatureTask::class.java) {

@@ -24,7 +24,7 @@ Makes `feature/wishlist/{api,domain,data,ui}`, wires settings, app deps, Koin. B
 ```
 ./gradlew assembleDebug checkModules testDebugUnitTest :konsist:test
 ```
-- `checkModules` — module dependency rules (build-logic).
+- `checkModules` — module dependency rules + generator tests (build-logic).
 - `:konsist:test` — code rules (Konsist + Kotest).
 
 ## Rules (short)
